@@ -1,8 +1,7 @@
 var mongoose = require("mongoose");
 var classTimetableSchema = mongoose.Schema({
 	department:{
-		type:ObjectId,
-		ref:"Departments",
+		type:String,
 		required:true
 	},
 	year:{
@@ -15,23 +14,23 @@ var classTimetableSchema = mongoose.Schema({
 	},
 	timetable:[{
 		day:[{
-			type:Schema.ObjectId,
+			type:mongoose.Schema.ObjectId,
 			ref:"Course"
 		}]
 	}],
 	courses:[{
 		course_id:{
-			type:Schema.ObjectId,
+			type:mongoose.Schema.ObjectId,
 			ref:"Course"
 		},
 		professor_id:{
-			type:Schema.ObjectId,
+			type:mongoose.Schema.ObjectId,
 			ref:"Professor"
 		}
 	}]
 });
 
 
-var ClassTimetable = mongoose.model("ClassTimetable",classTimetable);
+var ClassTimetable = mongoose.model("ClassTimetable",classTimetableSchema);
 
 module.exports = ClassTimetable;

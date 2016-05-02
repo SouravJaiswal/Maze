@@ -16,6 +16,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 
 
+app.get("/index.html",function(req,res) {
+	res.sendfile("index.html");
+});
+
 app.get("/", function(req, res) {
     res.send("Don't fool around");
 })

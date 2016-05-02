@@ -3,109 +3,142 @@ var ClassTimetable = require("../models/class-timetables");
 
 
 module.exports.initClassTimetable = function(req, res) {
-    function callback(errors, professor) {
+    function callback(errors, courses_id, professors_id) {
         if (errors.length === 0) {
-            var course = new Course();
-            course.name = req.body.name;
-            course.course_id = req.body.id
-            course.department = req.body.department;
-            course.professors.push(professor);
-            course.save(function(err) {
+            var cTimeTable = new ClassTimetable();
+            cTimeTable.department = req.body.department;
+            cTimeTable.year = req.body.year;
+            cTimeTable.semester = req.body.semester;
+            for (var i = 0; i < courses_id.length; i++) {
+                var courseProfessorMap = {};
+                courseProfessorMap.course_id = courses_id[i];
+                courseProfessorMap.professor_id = professors_id[i];
+                cTimeTable.courses.push(courseProfessorMap);
+            }
+            cTimeTable.save(function(err) {
                 if (err) {
                     res.json("Some error occured");
                 } else {
-                    res.json(course);
+                    res.json(cTimeTable);
                 }
             });
         } else {
             res.json(errors);
         }
+
     }
 
-    var errors = helpers.checkTimetableErrors(req, callback);
+    var errors = helpers.checkClassTimetableErrors(req, callback);
 
 }
 
 
-module.exports.createClassTimetable = function(req, res) {
+module.exports.insertClassTimetable = function(req, res) {
 
-    function callback(errors, professor) {
+    function callback(errors, courses_id, professors_id) {
         if (errors.length === 0) {
-            var course = new Course();
-            course.name = req.body.name;
-            course.course_id = req.body.id
-            course.department = req.body.department;
-            course.professors.push(professor);
-            course.save(function(err) {
+
+            ClassTimetable.findById(req.params.id, function(err, data) {
+
                 if (err) {
-                    res.json("Some error occured");
-                } else {
-                    res.json(course);
-                }
-            });
-        } else {
-            res.json(errors);
-        }
-    }
-
-    var errors = helpers.checkTimetableErrors(req, callback);
-
-}
-
-module.exports.updateCourse = function(req, res) {
-    function callback(errors) {
-        if (errors.length === 0) {
-            Course.findById(res.params.id, function(err, course) {
-                if (err) {
-                    res.json("Some error occured");
+                    res.json("Some error has occured");
                     return;
                 }
-                course.name = req.body.name;
-                course.course_id = req.body.id
-                course.department = req.body.department;
-                course.professor = req.body.professor;
-                course.save(function(err) {
+                if (data == null) {
+                    res.json("No such Class timetable exists");
+                } else {
+                    var is_there;
+                    var x = data.courses[0]
+                    data.courses = [];
+                    data.courses.push(x);
+                    for (var i = 0; i < courses_id.length; i++) {
+                        var courseProfessorMap = {};
+                        is_there = false;
+                        for (var j = 0; j < data.courses.length; j++) {
+                            if (data.courses[j].course_id.toString() == courses_id[i].toString()) {
+                                is_there = true;
+                                break;
+                            }
+                        }
+                        if (!is_there) {
+                            courseProfessorMap.course_id = courses_id[i];
+                            courseProfessorMap.professor_id = professors_id[i];
+                            data.courses.push(courseProfessorMap);
+                        }
+                    }
+                    data.save(function(err) {
+                        if (err) {
+                            res.json("Some error occured");
+                        } else {
+                            res.json(data);
+                        }
+                    });
+                }
+
+            });
+        } else {
+            res.json(errors);
+        }
+    }
+    var errors = helpers.checkClassTTCourses(req, [], callback);
+}
+
+module.exports.updateClassTimetable = function(req, res) {
+
+    function callback(errors, courses_id, professors_id) {
+        if (errors.length === 0) {
+            ClassTimetable.findById(req.params.id, function(err, cTimeTable) {
+                cTimeTable.department = req.body.department;
+                cTimeTable.year = req.body.year;
+                cTimeTable.semester = req.body.semester;
+                for (var i = 0; i < courses_id.length; i++) {
+                    var courseProfessorMap = {};
+                    courseProfessorMap.course_id = courses_id[i];
+                    courseProfessorMap.professor_id = professors_id[i];
+                    cTimeTable.courses.push(courseProfessorMap);
+                }
+                cTimeTable.save(function(err) {
                     if (err) {
                         res.json("Some error occured");
                     } else {
-                        res.json(course);
+                        res.json(cTimeTable);
                     }
                 });
-            });
 
+            });
         } else {
             res.json(errors);
         }
-    }
-    var errors = helpers.checkcourseErrors(req, callback);
 
+        var errors = helpers.checkClassTimetableErrors(req, callback);
+    }
 }
-module.exports.deleteCourse = function(req, res) {
-    Course.findByIdAndRemove(req.params.id, function(err, course) {
+module.exports.deleteClassTimetable = function(req, res) {
+    ClassTimetable.findByIdAndRemove(req.params.id, function(err, cTimeTable) {
         if (err) {
             res.json("Some error occured");
             return;
         }
-        if (course !== null) {
-            res.json("course deleted" + course);
+        if (cTimeTable !== null) {
+            res.json("Class Timetable deleted" + cTimeTable);
             return;
         } else {
-            res.json("No such course");
+            res.json("No such Timetable");
         }
     });
 }
 
-module.exports.getCourse = function(req, res) {
-    Course.findById(req.params.id, function(err, course) {
+module.exports.getClassTimeTable = function(req, res) {
+    ClassTimetable.findById(req.params.id, function(err, cTimeTable) {
         if (err) {
             res.json("Some error occured");
             return;
         }
-        if (course == null) {
-            res.json("No such course");
+        if (cTimeTable == null) {
+            res.json("No such Class timetable");
             return;
         } else {
-            res.json(course);
+            res.json(cTimeTable);
             return;
         }
     });

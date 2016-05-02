@@ -5,13 +5,17 @@ var Professor = require("../models/professors.js");
 
 module.exports.createProfessor = function(req, res) {
 
-    function callback(errors) {
+    function callback(errors,courses_id) {
         if (errors.length === 0) {
+
             var professor = new Professor();
             professor.name = req.body.name;
             professor.email = req.body.email;
             professor.university_id = req.body.university;
             professor.department = req.body.department;
+            console.log("reached cntroller");
+            if (helpers.exists(req.body.courses))
+                professor.courses = courses_id;
             professor.save(function(err) {
                 if (err) {
                     res.json("Some error occured");
@@ -34,7 +38,7 @@ module.exports.updateProfessor = function(req, res) {
 
     function callback(errors) {
         if (errors.length === 0) {
-            Professor.findById(res.params.id, function(err, professor) {
+            Professor.findById(req.params.id, function(err, professor) {
                 if (err) {
                     res.json("Some error occured");
                     return;
@@ -43,6 +47,9 @@ module.exports.updateProfessor = function(req, res) {
                 professor.email = req.body.email;
                 professor.university_id = req.body.university;
                 professor.department = req.body.department;
+                //console.log(req.body.courses);
+                if (helpers.exists(req.body.courses))
+                    professor.courses = JSON.parse(req.body.courses);
                 professor.save(function(err) {
                     if (err) {
                         res.json("Some error occured");
@@ -56,7 +63,7 @@ module.exports.updateProfessor = function(req, res) {
             res.json(errors);
         }
     }
-    var errors = helpers.checkProfessorErrors(req,callback);
+    var errors = helpers.checkProfessorErrors(req, callback);
 
 }
 

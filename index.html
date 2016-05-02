@@ -1,0 +1,20 @@
+<html>
+<head>
+	<title>ASDANSKD</title>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.js"></script>
+	<script type="text/javascript">
+		$(function(){
+			$("#btn").click(function() {
+				$.get( "localhost:5000", function( data ) {
+  $( ".result" ).html( data );
+  alert( "Load was performed." );
+});
+			})
+		})
+	</script>
+</head>
+<body>
+	<button id="btn">Click me </button>
+	<p class="results"></p>
+</body>
+</html>
