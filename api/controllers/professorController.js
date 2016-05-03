@@ -15,6 +15,8 @@ module.exports.createProfessor = function(req, res) {
             professor.department = req.body.department;
             console.log("reached cntroller");
             if (helpers.exists(req.body.courses))
+                console.log("Reached courses");
+                console.log(courses_id);
                 professor.courses = courses_id;
             professor.save(function(err) {
                 if (err) {
@@ -68,7 +70,7 @@ module.exports.updateProfessor = function(req, res) {
 }
 
 module.exports.deleteProfessor = function(req, res) {
-    Professor.findByIdAndRemove(res.params.id, function(err, professor) {
+    Professor.findByIdAndRemove(req.params.id, function(err, professor) {
         if (err) {
             res.json("Some error occured");
             return;
@@ -80,7 +82,7 @@ module.exports.deleteProfessor = function(req, res) {
 }
 
 module.exports.getProfessor = function(req, res) {
-    Professor.findById(res.params.id, function(err, professor) {
+    Professor.findById(req.params.id, function(err, professor) {
         if (err) {
             res.json("Some error occured");
             return;

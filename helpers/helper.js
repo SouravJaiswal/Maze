@@ -1,6 +1,7 @@
 var dept = require("../api/models/departments.js");
 var Professor = require("../api/models/professors.js");
 var Courses = require("../api/models/courses.js");
+var request  = require("request");
 
 function exists(data) {
     return data && data.length > 0;
@@ -44,6 +45,7 @@ function checkClassTTCourses(req, errors, callback) {
             } else {
                 professors_id.push(data._id);
             }
+            console.log(data.courses.indexOf(courses_id[length]));
             if (data.courses.indexOf(courses_id[length]) < 0) {
                 errors.push(data.name + " is not assigned for " + courses[length].course_name);
             }
@@ -130,6 +132,7 @@ module.exports.checkProfessorErrors = function(req, callback) {
                         errors.push("Courses not registered");
                     }
                     courses_id.push(data._id);
+                    console.log(courses_id);
                     length++;
                     if (courses.length > length) {
                         checkCourses(courses, length, courses_id, callback);
@@ -158,7 +161,7 @@ module.exports.checkProfessorErrors = function(req, callback) {
                 var courses = JSON.parse(req.body.courses);
 
 
-                function checkCourses(courses, length, callback) {
+                function checkCourses(courses, length,courses_id, callback) {
                     Courses.findOne({
                         name: courses[length]
                     }, function(err, data) {
@@ -168,17 +171,18 @@ module.exports.checkProfessorErrors = function(req, callback) {
                         if (data == null) {
                             errors.push("Courses not registered");
                         }
+                        courses_id.push(data._id);
                         length++;
                         if (courses.length > length) {
-                            checkCourses(courses, length, callback);
+                            checkCourses(courses, length,courses_id, callback);
                         } else {
-                            callback(errors);
+                            callback(errors,courses_id);
                         }
                     });
 
 
                 }
-                checkCourses(courses, 0, callback);
+                checkCourses(courses, 0,[], callback);
                 return;
             }
             console.log(errors);
@@ -283,6 +287,7 @@ module.exports.checkProfessorTimetableErrors = function(req, callback) {
                     var timetable = JSON.parse(req.body.timetable);
                     for (var i = 0; i < timetable.length; i++) {
                         for (var j = 0; j < timetable[i].length; j++) {
+                            var 
                             if (professor.courses.indexOf(timetable[i][j]) < 0) {
                                 errors.push(professor.name + " does not teach " + timetable[i][j]);
                             }
