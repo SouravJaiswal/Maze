@@ -3,6 +3,7 @@ var dept = require("../models/departments.js");
 var User = require("../models/users.js");
 
 
+
 module.exports.createUser = function(req, res) {
 
     function callback(errors) {
@@ -15,8 +16,9 @@ module.exports.createUser = function(req, res) {
             user.university_id = req.body.university;
             user.department = req.body.department;
             user.save(function(err) {
+                console.log(err);
                 if (err) {
-                    res.json("Some error occured");
+                    res.json(err.message);
                 } else {
                     res.json(user);
                 }

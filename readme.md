@@ -27,11 +27,11 @@ All the requests to the application will be logged on to the terminal.
 	http://localhost:5000/api/department/5721ebaa589547f60d9e6159
  All the CRUD operations are defined for all below classes
 > * Department
- * User
- * Professor
- * Course
- * Class Timetable (ctimetable)
- * Professor Timetable (ptimetable)
+> * User
+> * Professor
+> * Course
+> * Class Timetable (ctimetable)
+> * Professor Timetable (ptimetable)
 
 ##### CRUD Operations:  
 
@@ -49,7 +49,33 @@ All the requests to the application will be logged on to the terminal.
 
  * DELETE
 	
-	 	DELETE http://localhost:5000/api/department/5721ebaa589547f60d9e6159  
+	 	DELETE http://localhost:5000/api/department/5721ebaa589547f60d9e6159 
+
+### Class Structures
+
+#### Department
+
+* Name 
+ * Type : String
+ * Required : True
+
+#### User
+
+* Name 
+ * Type : String
+ * Required : True
+
+* Username 
+ * Type : String
+ * Required : True
+
+* Email
+ * Type : String
+ * Required : True
+ 
+* University_ID
+ * Type : String
+ * Required : True
 
 ### Directory Structure
 
@@ -80,4 +106,5 @@ All the requests to the application will be logged on to the terminal.
 	app_client/
 	app_server/
 	└── views
+
 

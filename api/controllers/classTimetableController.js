@@ -3,7 +3,7 @@ var ClassTimetable = require("../models/class-timetables");
 
 
 module.exports.initClassTimetable = function(req, res) {
-    function callback(errors, courses_id, professors_id) {
+    function callback(errors, courses) {
         if (errors.length === 0) {
             var cTimeTable = new ClassTimetable();
             cTimeTable.department = req.body.department;
@@ -11,8 +11,8 @@ module.exports.initClassTimetable = function(req, res) {
             cTimeTable.semester = req.body.semester;
             for (var i = 0; i < courses_id.length; i++) {
                 var courseProfessorMap = {};
-                courseProfessorMap.course_id = courses_id[i];
-                courseProfessorMap.professor_id = professors_id[i];
+                courseProfessorMap.course_id = courses[i][0];
+                courseProfessorMap.professor_id = courses[i][1];
                 cTimeTable.courses.push(courseProfessorMap);
             }
             cTimeTable.save(function(err) {
