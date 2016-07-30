@@ -9,24 +9,31 @@ var classTimetableSchema = mongoose.Schema({
 		required:true,
 	},
 	semester:{
-		type:String,
-		required:true
+		type:Number,
+		required:true,
+		min:1,
+		max:8
 	},
-	timetable:[{
-		day:[{
-			type:mongoose.Schema.ObjectId,
-			ref:"Course"
-		}]
-	}],
+	timetable:[[
+		{
+			name : {
+				type : String,
+			},
+			_id : {
+				type : mongoose.Schema.Types.ObjectId,
+				ref : "courses"
+			}
+		}
+	]],
 	courses:[{
 		course_id:{
 			type:mongoose.Schema.ObjectId,
 			ref:"Course"
 		},
-		professor_id:{
+		professor_id:[{
 			type:mongoose.Schema.ObjectId,
 			ref:"Professor"
-		}
+		}]
 	}]
 });
 

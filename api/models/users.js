@@ -1,7 +1,7 @@
 var mongoose = require("mongoose");
 var bcrypt = require("bcrypt");
 var SALT_WORK_FACTOR = 10;
-var uniqueValidator = require('mongoose-unique-validator');
+//var uniqueValidator = require('mongoose-unique-validator');
 
 var userSchema = mongoose.Schema({
 	username:{
@@ -12,21 +12,26 @@ var userSchema = mongoose.Schema({
 	},
 	name:{
 		type:String,
-		required:true
+		required:true,
+		trim:true,
+		unique:true
 	},
 	email:{
 		type:String,
 		required:true,
 		unique:true,
-		trim: true
+		trim: true,
+		lowercase:true
 	},
 	university_id: {
 		type:String,
-		required:true
+		required:true,
+		unique:true,
+		trim:true
 	},
 	password:{
 		type:String,
-		required:true
+		required:true,
 	},
 	department:{
 		type:String,
@@ -35,7 +40,8 @@ var userSchema = mongoose.Schema({
 	role:{
 		type:String,
 		required:true,
-		default:"editor"
+		enum:["admin","editor","viewer"],
+		default:"viewer"
 	},
 	register_date:{
 		type:Date,
@@ -56,7 +62,7 @@ userSchema.methods.checkPassword = function(password){
 	return (bcrypt.hashSync(password,this.salt) == this.hash);
 }
 
-userSchema.plugin(uniqueValidator);
+//userSchema.plugin(uniqueValidator);
 
 var User = mongoose.model("User",userSchema);
 

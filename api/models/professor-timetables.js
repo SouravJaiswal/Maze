@@ -1,7 +1,8 @@
 var mongoose = require("mongoose");
 var professorTimetableSchema = mongoose.Schema({
     professor_id: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"Professor",
         required: true
     },
     year: {
@@ -12,10 +13,15 @@ var professorTimetableSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    timetable: [{
-        type: mongoose.Schema.ObjectId,
-        ref: "Course"
-    }]
+    timetable: [[{
+        name : {
+            type:String
+        },
+        _id : {
+            type: mongoose.Schema.ObjectId,
+            ref: "Course"
+        }
+    }]]
 });
 
 

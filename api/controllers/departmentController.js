@@ -7,11 +7,11 @@ module.exports.createDepartment = function(req, res) {
     var errors = helpers.checkDepartmentErrors(req);
 
     if (errors.length === 0) {
-        var dept = new Dept;
+        var dept = new Dept();
         dept.name = req.body.name;
         dept.save(function(err) {
             if (err) {
-                res.json("Some error occured");
+                res.json("Error : "+err.errmsg);
             } else {
                 res.json(dept);
             }

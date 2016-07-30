@@ -2,7 +2,8 @@ var mongoose = require("mongoose");
 var departmentSchema = mongoose.Schema({
 	name:{
 		type:String,
-		required:true
+		required:true,
+		unique:true
 	}
 });
 

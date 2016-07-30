@@ -12,13 +12,13 @@ module.exports.createUser = function(req, res) {
             user.username = req.body.username;
             user.name = req.body.name;
             user.email = req.body.email;
-            user.password = req.body.password;
+            user.savePassword(req.body.password);
             user.university_id = req.body.university;
             user.department = req.body.department;
             user.save(function(err) {
                 console.log(err);
                 if (err) {
-                    res.json(err.message);
+                    res.json(err);
                 } else {
                     res.json(user);
                 }

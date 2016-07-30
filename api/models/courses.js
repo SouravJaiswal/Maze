@@ -1,4 +1,6 @@
 var mongoose = require("mongoose");
+var Professors = require("./professors");
+var async = require("async");
 var courseSchema = mongoose.Schema({
 	name:{
 		type:String,
@@ -6,17 +8,22 @@ var courseSchema = mongoose.Schema({
 	},
 	course_id: {
 		type:String,
-		required:true
+		required:true,
+		unique:true
 	},
 	department:{
 		type:String,
 		required:true
 	},
 	professors:[{
-		type:mongoose.Schema.ObjectId,
+		type : mongoose.Schema.Types.ObjectId,
 		ref:"professor"
 	}],
-	sem_offered:[String]
+	sem_offered:[{
+		type:Number,
+		min:1,
+		max:8
+	}]
 });
 
 
