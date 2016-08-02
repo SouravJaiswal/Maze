@@ -127,7 +127,7 @@ module.exports.createProfessor = function(req, res) {
                     //console.log(err.toJSON());
                     res.json(err);
                 } else {
-                    populateCourse(professor,function(err){
+                    populateCourses(professor,function(err){
                         if(err){
                             console.log(err);
                             professor.remove();
@@ -194,18 +194,32 @@ module.exports.updateProfessor = function(req, res) {
                             e = false;
                         }
                     }
-
                     if(e){
                         prof.courses.push(results[i]);
                     }
                 }
 
             }
+            var courses = prof.courses;
             prof.save(function(err) {
                 if (err) {
                     res.json(err);
                 } else {
-                    res.json(prof);
+                    populateCourses(prof,function(err){
+                        if(err){
+                            console.log(err);
+                            prof.courses = courses;
+                            prof.save(function(err){
+                                if(err){
+                                    res.json(err);
+                                }else{
+                                   res.json("Couldn't add courses, so reverted back"); 
+                                }
+                            });
+                        }else{
+                            res.json(prof);
+                        } 
+                    });
                 }
             });
         }else{
@@ -215,13 +229,36 @@ module.exports.updateProfessor = function(req, res) {
 }
 
 module.exports.deleteProfessor = function(req, res) {
-    Professor.findByIdAndRemove(req.params.id, function(err, professor) {
+    Professor.findById(req.params.id, function(err, professor) {
         if (err) {
             res.json(err);
             return;
         } else if (professor !== null) {
-            res.json("Professor deleted" + professor);
-            return;
+            async.eachSeries(professor.courses,function(course,done){
+                Courses.findById(course,function(err,data){
+                    if(err){
+                        console.log(err);
+                    }else{
+                        if(data.professors.indexOf(professor._id) >=0){
+                            data.professors.splice(data.professors.indexOf(professor._id),1);
+                        }
+                        data.save(function(err){
+                            if(err){
+                                console.log(err);
+                            }
+                            done();
+                        });
+                    }
+                    
+                });
+            },function(err){
+                if(err){
+                    res.json(err);
+                }else{
+                    professor.remove();
+                    res.json(professor.name + " has been deleted");
+                }
+            });
         }
     });
 }

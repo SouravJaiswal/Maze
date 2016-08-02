@@ -19,7 +19,7 @@ var courseSchema = mongoose.Schema({
 		type : mongoose.Schema.Types.ObjectId,
 		ref:"professor"
 	}],
-	sem_offered:[{
+	semesters:[{
 		type:Number,
 		min:1,
 		max:8

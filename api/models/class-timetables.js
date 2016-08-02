@@ -5,8 +5,10 @@ var classTimetableSchema = mongoose.Schema({
 		required:true
 	},
 	year:{
-		type:String,
-		required:true,
+		type : Number,
+		min : 1900,
+		max : 2100,
+		default : 2016
 	},
 	semester:{
 		type:Number,
@@ -14,25 +16,33 @@ var classTimetableSchema = mongoose.Schema({
 		min:1,
 		max:8
 	},
+	section:{
+
+		type : String,
+		required : true,
+		enum : ["A","B","C","D","E"] 
+
+	},	
 	timetable:[[
 		{
-			name : {
-				type : String,
-			},
-			_id : {
+			course_id : {
 				type : mongoose.Schema.Types.ObjectId,
 				ref : "courses"
-			}
+			},
+			professor_id : [{
+				type : mongoose.Schema.Types.ObjectId,
+				ref : "professors"
+			}]
 		}
 	]],
 	courses:[{
 		course_id:{
 			type:mongoose.Schema.ObjectId,
-			ref:"Course"
+			ref:"courses"
 		},
 		professor_id:[{
 			type:mongoose.Schema.ObjectId,
-			ref:"Professor"
+			ref:"professors"
 		}]
 	}]
 });

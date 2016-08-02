@@ -4,7 +4,7 @@ var ctrlProfessorTimetable = require("../controllers/professorTimetableControlle
 
 
 //router.get("/:id",ctrlProfessorTimetable.getClassTimeTable);
-router.post("/",ctrlProfessorTimetable.createProfessorTimetable);
+router.post("/",ctrlProfessorTimetable.create);
 //router.post("/:id",ctrlProfessorTimetable.insertClassTimetable);
 //router.put("/:id",ctrlProfessorTimetable.updateClassTimetable);
 //router.delete("/:id",ctrlProfessorTimetable.deleteClassTimetable);

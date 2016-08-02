@@ -1,145 +1,179 @@
-var helpers = require("../../helpers/helper");
+var helpers = require("../../helpers/helper_2");
 var ClassTimetable = require("../models/class-timetables");
+var semCourses = require("../models/sem-courses");
+var async = require("async");
 
 
-module.exports.initClassTimetable = function(req, res) {
-    function callback(errors, courses) {
-        if (errors.length === 0) {
-            var cTimeTable = new ClassTimetable();
-            cTimeTable.department = req.body.department;
-            cTimeTable.year = req.body.year;
-            cTimeTable.semester = req.body.semester;
-            for (var i = 0; i < courses_id.length; i++) {
-                var courseProfessorMap = {};
-                courseProfessorMap.course_id = courses[i][0];
-                courseProfessorMap.professor_id = courses[i][1];
-                cTimeTable.courses.push(courseProfessorMap);
-            }
-            cTimeTable.save(function(err) {
-                if (err) {
-                    res.json("Some error occured");
-                } else {
-                    res.json(cTimeTable);
+function checkErrors(req,cb){
+    var errors = [];
+    console.log("checkpoint 1");
+    var tests = [
+        function(done){
+
+            // Check if all the required fields exists, if not put in the errors array
+            console.log("checkpoint 2");
+            helpers.exists(req.body,["year","department","semester","section"],function(err){
+                errors.push(err);
+                console.log("test 1");
+
+                // What happens if the given input is anything other than numbers?
+
+                if( (req.body.year < 1900 || req.body.year > 2100)){
+                    errors.push("Year out of bound");
                 }
+                if((req.body.semester < 1  && req.body.semester > 9)){
+                    errors.push("Semester out of bound");
+                }
+                var sections = ["A","B","C","D","E"];
+                if(sections.indexOf(req.body.section) < 0){
+                    errors.push("Section out of bound");
+                }
+                done(null,errors);
             });
-        } else {
-            res.json(errors);
+
+        },
+        function(errors,done){
+
+            // Check whether the semester has already been created
+            if(errors.length == 1 && errors[0].length === 0 ){
+
+                var query = {};
+                query["year"] = req.body.year;
+                query["semester"] = req.body.semester;
+                query["section"] = req.body.section;
+                query["department"] = req.body.department;
+                //console.log(query); 
+                helpers.findInModel(ClassTimetable,"This timetable ",query,["_id"],function(err,data,waste){
+
+                    console.log(data._id);
+                    //console.log(err);
+                    if(data._id && String(data._id).length > 0){
+                        errors.push("The timetable for this section already exists");
+                    }
+                    done(null, errors);
+                });
+            }else{
+                done(null, errors);
+            }
         }
+    ];
 
-    }
-
-    var errors = helpers.checkClassTimetableErrors(req, callback);
-
+    async.waterfall(tests,function(err,cerrors){
+        //console.log(err);
+        cb(cerrors);
+    });
 }
 
 
-module.exports.insertClassTimetable = function(req, res) {
+function checkCourses(req,cData,cb){
 
-    function callback(errors, courses_id, professors_id) {
-        if (errors.length === 0) {
+    var query = {};
+    query["year"] = cData["year"];
+    query["department"] = cData["department"];
+    query["semester"] = cData["semester"];
+    var errors = [];
+    helpers.findInModel(semCourses, "This semester data " ,query, ["courses"],function(err,data,waste){
 
-            ClassTimetable.findById(req.params.id, function(err, data) {
+        if(err && err.length > 0){
+            errors.push(...err);
+        }
+        if(data != null){
+            var courses = JSON.parse(req.body.courses);
+            console.log(data);
+            var courses_id = [];
+            for(var i=0;i<courses.length;i++){
+                var cfound = false;
+                for(var j=0;j<data.courses.length;j++){
+                    if(String(courses[i].course_id) == String(data.courses[j].course_id)){
+                        cfound = true;
+                        for(var k=0;k<courses[i].professor_id.length;k++){
+                            // var found = false;
+                            // for(var l=0;l<data.courses[j].professor_id.length;l++){
+                            //     if(String(courses[i].professor_id[k]) == String(data.courses[j].professor_id[l])){
+                            //         found = true;
+                            //         break;
+                            //     }
+                            // }
 
-                if (err) {
-                    res.json("Some error has occured");
-                    return;
-                }
-                if (data == null) {
-                    res.json("No such Class timetable exists");
-                } else {
-                    var is_there;
-                    var x = data.courses[0]
-                    data.courses = [];
-                    data.courses.push(x);
-                    for (var i = 0; i < courses_id.length; i++) {
-                        var courseProfessorMap = {};
-                        is_there = false;
-                        for (var j = 0; j < data.courses.length; j++) {
-                            if (data.courses[j].course_id.toString() == courses_id[i].toString()) {
-                                is_there = true;
-                                break;
+                            if(data.courses[j].professor_id.indexOf(String(courses[i].professor_id[k])) < 0){
+                                errors.push("Professor not assigned to teach the course this semester");
                             }
                         }
-                        if (!is_there) {
-                            courseProfessorMap.course_id = courses_id[i];
-                            courseProfessorMap.professor_id = professors_id[i];
-                            data.courses.push(courseProfessorMap);
-                        }
+                        break;
                     }
-                    data.save(function(err) {
-                        if (err) {
-                            res.json("Some error occured");
-                        } else {
-                            res.json(data);
-                        }
-                    });
                 }
-
-            });
-        } else {
-            res.json(errors);
+                if(!cfound){
+                    errors.push("Course not assigned this semester for this department");
+                }
+            }
+        }else{
+            errors.push("No semester courses defined for this class");
         }
-    }
-    var errors = helpers.checkClassTTCourses(req, [], callback);
+        cb(errors);
+    });
 }
 
-module.exports.updateClassTimetable = function(req, res) {
 
-    function callback(errors, courses_id, professors_id) {
-        if (errors.length === 0) {
-            ClassTimetable.findById(req.params.id, function(err, cTimeTable) {
-                cTimeTable.department = req.body.department;
-                cTimeTable.year = req.body.year;
-                cTimeTable.semester = req.body.semester;
-                for (var i = 0; i < courses_id.length; i++) {
-                    var courseProfessorMap = {};
-                    courseProfessorMap.course_id = courses_id[i];
-                    courseProfessorMap.professor_id = professors_id[i];
-                    cTimeTable.courses.push(courseProfessorMap);
+
+function create(req,res){
+
+
+    checkErrors(req,function(errors){
+        if(errors.length == 1 && errors[0].length === 0){
+            var ctt = new ClassTimetable();
+            ctt.year = req.body.year;
+            ctt.department = req.body.department;
+            ctt.section = req.body.section;
+            ctt.semester = req.body.semester;
+            ctt.save(function(err){
+                if(err){
+                    res.json(err);
+                    return;
+                }else{
+                    res.json(ctt);
                 }
-                cTimeTable.save(function(err) {
-                    if (err) {
-                        res.json("Some error occured");
-                    } else {
-                        res.json(cTimeTable);
+            })
+        }else{
+            res.json(errors);
+        }
+    })
+
+}
+
+
+function insertCourses(req,res){
+
+    var ctt_id = req.params.id.trim();
+
+    ClassTimetable.findById(ctt_id,function(err,data){
+        if(err){
+            res.json(err);
+        }else{
+            if(data == null){
+                res.json("No Such timetable");
+            }else{
+                checkCourses(req,data,function(err){
+                    if(err && err.length>0){
+                        res.json(err);
+                    }else{
+                        var courses = JSON.parse(req.body.courses);
+                        console.log(courses);   
+                        // Bad assumption but simple code for now
+                        data.courses = courses;
+                        data.save(function(err){
+                            if(err){
+                                res.json(err);
+                            }else{
+                                res.json(data);
+                            }
+                        });
                     }
                 });
-
-            });
-        } else {
-            res.json(errors);
-        }
-
-        var errors = helpers.checkClassTimetableErrors(req, callback);
-    }
-}
-module.exports.deleteClassTimetable = function(req, res) {
-    ClassTimetable.findByIdAndRemove(req.params.id, function(err, cTimeTable) {
-        if (err) {
-            res.json("Some error occured");
-            return;
-        }
-        if (cTimeTable !== null) {
-            res.json("Class Timetable deleted" + cTimeTable);
-            return;
-        } else {
-            res.json("No such Timetable");
+            }
         }
     });
 }
 
-module.exports.getClassTimeTable = function(req, res) {
-    ClassTimetable.findById(req.params.id, function(err, cTimeTable) {
-        if (err) {
-            res.json("Some error occured");
-            return;
-        }
-        if (cTimeTable == null) {
-            res.json("No such Class timetable");
-            return;
-        } else {
-            res.json(cTimeTable);
-            return;
-        }
-    });
-}
+
+module.exports.create = create;
+module.exports.insertcourses = insertCourses;

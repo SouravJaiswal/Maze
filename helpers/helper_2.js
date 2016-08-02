@@ -1,12 +1,14 @@
 var dept = require("../api/models/departments.js");
 var Professor = require("../api/models/professors.js");
 var Courses = require("../api/models/courses.js");
+var semCourses = require("../api/models/sem-courses");
 var request = require("request");
 var async = require('async');
 var models = {
 	professors : Professor,
 	courses : Courses,
-	departments : dept
+	departments : dept,
+	semcourses : semCourses
 }
 /*
 	Given a model, query, and what details to find,
@@ -19,6 +21,7 @@ function findInModel(model,cname,query,details,populate,done){
 	var errors = [];
 	var temp = {};
 	//console.log(model);
+	//console.log(query);
 	model.findOne(query,function(err,mdata){
 		if(err){
 			errors.push(err);
@@ -26,7 +29,6 @@ function findInModel(model,cname,query,details,populate,done){
 			if(mdata == null){
 				errors.push(cname + " does not exists ");
 			}else{
-				
 				for(var i=0;i<details.length;i++){
 					temp[details[i]] = mdata[details[i]];
 				}		
@@ -126,8 +128,8 @@ function exists(data,fields,cb){
 
 
 
-
 // Making the required functions public 
+module.exports.findInModel = findInModel;
 module.exports.checkUnique = checkUnique;
 module.exports.existInDB  = existInDB;
 module.exports.getData = getData;

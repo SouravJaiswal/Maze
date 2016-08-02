@@ -2,24 +2,25 @@ var mongoose = require("mongoose");
 var professorTimetableSchema = mongoose.Schema({
     professor_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref:"Professor",
+        ref:"professors",
         required: true
     },
     year: {
-        type: String,
-        required: true,
+        type : Number,
+        min : 1900,
+        max : 2100,
+        default : 2016
     },
     semester: {
         type: String,
-        required: true
+        required: true,
+        enum : ["odd","even"],
+        default : "odd"
     },
     timetable: [[{
-        name : {
-            type:String
-        },
-        _id : {
-            type: mongoose.Schema.ObjectId,
-            ref: "Course"
+        course_id : {
+            type : mongoose.Schema.Types.ObjectId,
+            ref : "courses"
         }
     }]]
 });

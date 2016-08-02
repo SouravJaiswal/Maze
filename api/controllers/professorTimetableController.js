@@ -1,7 +1,122 @@
-var helpers = require("../../helpers/helper");
+var helpers = require("../../helpers/helper_2");
 var ProfessorTimetable = require("../models/professor-timetables");
+var mongoose = require("mongoose");
+var async = require("async");
+var Professors = require("../models/professors");
+
+function checkErrors(req,cb,ufields){
+    var errors = [];
+    var tests = [
+        function(done){
+
+            // Check if all the required fields exists, if not put in the errors array
+
+            helpers.exists(req.body,["year","professor_id","semester"],function(err){
+                errors.push(err);
+                console.log("test 1");
+
+                // What happens if the given input is anything other than numbers?
+
+                if( (req.body.year < 1900 || req.body.year > 2100)){
+                    errors.push("Year out of bound");
+                }
+                if((req.body.semester !="odd" && req.body.semester != "even")){
+                    errors.push("Semester out of bound");
+                }
+                done(null,errors);
+            });
+
+        },
+        function(errors,done){
+
+            if(errors.length == 1 && errors[0].length === 0 && ufields == 1){
+
+                var query = {};
+                query["_id"] = req.body.professor_id;
+                //console.log(query); 
+                helpers.findInModel(Professors,"This professor ",query,["_id"],function(err,data,waste){
+
+                    // console.log(err);
+                    // console.log("doesn't works");
+                    if(err.length > 0 ){
+                        errors.push("This professor does not exists");
+                    }
+                    done(null, errors);
+                });
+            }else{
+                done(null, errors);
+            }
+
+        },
+        function(errors,done){
+
+            // Check whether the semester has already been created
+            if(errors.length == 1 && errors[0].length === 0 && ufields == 1){
+
+                var query = {};
+                query["year"] = req.body.year;
+                query["semester"] = req.body.semester;
+                query["professor_id"] = req.body.professor_id;
+                //console.log(query); 
+                helpers.findInModel(ProfessorTimetable,"This timetable ",query,["_id"],function(err,data,waste){
+
+                    //console.log(data._id);
+                    //console.log(err);
+                    if(data._id && String(data._id).length > 0){
+                        errors.push("This semester has already been created for the supplied professor");
+                    }
+                    done(null, errors);
+                });
+            }else{
+                done(null, errors);
+            }
+
+        }
+    ];
+
+    async.waterfall(tests,function(err,cerrors){
+        //console.log(err);
+        cb(errors);
+    });
+}
 
 
+
+
+function create(req,res){
+
+    checkErrors(req,function(errors){
+
+        if(errors.length == 1 && errors[0].length === 0){
+            var ptt = new ProfessorTimetable();
+            ptt.year = req.body.year;
+            ptt.semester = req.body.semester;
+            ptt.professor_id = req.body.professor_id;
+            var tt = [];
+            for(var i=0;i<5;i++){
+                var temp = [];
+                for(var j=0;j<6;j++){
+                    temp.push(new mongoose.Types.ObjectId);
+                }
+                tt.push(temp);
+            }
+            ptt.timetable = tt;
+            ptt.save(function(err){
+                if(err){
+                    res.json(err);
+                }else{
+                    res.json(ptt);
+                }
+            });
+        }else{
+            res.json(errors);
+        }
+    },1);
+}
+
+
+
+/*
 module.exports.createProfessorTimetable = function(req, res) {
     function callback(errors) {
         if (errors.length === 0) {
@@ -38,6 +153,7 @@ module.exports.createProfessorTimetable = function(req, res) {
     }
     var errors = helpers.checkProfessorTimetableErrors(req, callback);
 }
+*/
 
 /*
 module.exports.insertClassTimetable = function(req, res) {
@@ -151,3 +267,5 @@ module.exports.getClassTimeTable = function(req, res) {
     });
 }
 */
+
+module.exports.create = create;

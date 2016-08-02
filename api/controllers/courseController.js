@@ -14,7 +14,7 @@ function checkErrors(req, cb, ufields) {
 
             // Check if all the required fields exists, if not put in the errors array
             console.log("Not working");
-            helpers.exists(req.body,["name","course_id","department"],function(err){
+            helpers.exists(req.body,["name","course_id","department","semesters"],function(err){
                 errors.push(err);
                 console.log("test 1");
                 done(null,errors);
@@ -48,6 +48,7 @@ function checkErrors(req, cb, ufields) {
         },
         function(errors,done){
             if(errors[0].indexOf("semesters") < 0){
+                //console.log(req.body.semesters[0]);
                 var sem = JSON.parse(req.body.semesters);
                 for(var i=0;i<sem.length;i++){
                     if(sem[i] < 1 || sem[i] > 8){
@@ -60,6 +61,7 @@ function checkErrors(req, cb, ufields) {
         function(errors, done) {
             var results = [];
             if (req.body.professors && req.body.professors.length > 0) {
+                //console.log(req.body.professors[0]);
                 var professors = JSON.parse(req.body.professors);
                 console.log(professors);
                 helpers.getData(professors,"professors","university_id",["_id"],populate);
@@ -128,10 +130,10 @@ module.exports.createCourse = function(req, res) {
             course.course_id = req.body.course_id
             course.department = req.body.department;
             var sem = JSON.parse(req.body.semesters);
-            course.sem_offered = [];
+            course.semesters = [];
             for(var i=0;i<sem.length;i++){
-                if(course.sem_offered.indexOf(sem[i]) < 0){
-                    course.sem_offered.push(sem[i]);
+                if(course.semesters.indexOf(sem[i]) < 0){
+                    course.semesters.push(sem[i]);
                 }
             }
             course.professors = [];
@@ -231,14 +233,37 @@ module.exports.updateCourse = function(req, res) {
     }
 }
 module.exports.deleteCourse = function(req, res) {
-    Course.findByIdAndRemove(req.params.id, function(err, course) {
+    Course.findById(req.params.id, function(err, course) {
         if (err) {
-            res.json("Some error occured");
+            res.json(err);
             return;
         }
         if (course !== null) {
-            res.json("course deleted" + course);
-            return;
+            async.eachSeries(course.professors,function(professor,done){
+                Professors.findById(professor,function(err,data){
+                    if(err){
+                        console.log(err);
+                    }else{
+                        if(data.courses.indexOf(course._id) >=0){
+                            data.courses.splice(data.courses.indexOf(course._id),1);
+                        }
+                        data.save(function(err){
+                            if(err){
+                                console.log(err);
+                            }
+                            done();
+                        });
+                    }
+                    
+                });
+            },function(err){
+                if(err){
+                    res.json(err);
+                }else{
+                    course.remove();
+                    res.json(course.name + " has been deleted");
+                }
+            });
         } else {
             res.json("No such course");
         }
