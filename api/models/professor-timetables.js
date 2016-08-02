@@ -18,10 +18,8 @@ var professorTimetableSchema = mongoose.Schema({
         default : "odd"
     },
     timetable: [[{
-        course_id : {
-            type : mongoose.Schema.Types.ObjectId,
-            ref : "courses"
-        }
+        type:String,
+        default:""
     }]]
 });
 

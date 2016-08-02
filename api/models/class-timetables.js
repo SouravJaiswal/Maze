@@ -21,18 +21,11 @@ var classTimetableSchema = mongoose.Schema({
 		type : String,
 		required : true,
 		enum : ["A","B","C","D","E"] 
-
 	},	
 	timetable:[[
 		{
-			course_id : {
-				type : mongoose.Schema.Types.ObjectId,
-				ref : "courses"
-			},
-			professor_id : [{
-				type : mongoose.Schema.Types.ObjectId,
-				ref : "professors"
-			}]
+			type : String	,
+			default : ""
 		}
 	]],
 	courses:[{

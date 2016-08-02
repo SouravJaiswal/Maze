@@ -93,13 +93,13 @@ function create(req,res){
             ptt.semester = req.body.semester;
             ptt.professor_id = req.body.professor_id;
             var tt = [];
-            for(var i=0;i<5;i++){
-                var temp = [];
-                for(var j=0;j<6;j++){
-                    temp.push(new mongoose.Types.ObjectId);
-                }
-                tt.push(temp);
-            }
+            // for(var i=0;i<5;i++){
+            //     var temp = [];
+            //     for(var j=0;j<6;j++){
+            //         temp.push(new mongoose.Types.ObjectId);
+            //     }
+            //     tt.push(temp);
+            // }
             ptt.timetable = tt;
             ptt.save(function(err){
                 if(err){
